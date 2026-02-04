@@ -17,7 +17,7 @@ type track struct {
 	} `json:"repo"`
 
 	Payload struct {
-		Commits []struct{} `json:"commits"`
+		Size int `json:"size"`
 	} `json:"payload"`
 }
 
@@ -55,7 +55,7 @@ func main() {
 	for _, e := range Track {
 		switch e.Type {
 		case "PushEvent":
-			fmt.Printf("- Pushed %d commits to %s\n", len(e.Payload.Commits), e.Repo.Name)
+			fmt.Printf("- Pushed %d commits to %s\n", e.Payload.Size, e.Repo.Name)
 		case "WatchEvent":
 			fmt.Printf("- Starred %s\n", e.Repo.Name)
 		case "IssuesEvent":
