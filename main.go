@@ -6,15 +6,24 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 )
 
 type track struct {
-	Event string `json:"type"`
+	Type string `json:"type"`
+
+	Repo struct {
+		Name string `json:"name"`
+	} `json:"repo"`
+
+	Payload struct {
+		Commits []struct{} `json:"commits"`
+	} `json:"payload"`
 }
 
 func main() {
 	var username string
-	//token := ""
+	token := os.Getenv("GITHUB_TOKEN")
 	fmt.Print("Enter The Github Username: ")
 	fmt.Scan(&username)
 	url := fmt.Sprintf("https://api.github.com/users/%s/events", username)
@@ -35,12 +44,25 @@ func main() {
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Errorf("Error reading response Body")
+		log.Fatal("Error reading response Body")
 	}
 	var Track []track
 	if err := json.Unmarshal(respBody, &Track); err != nil {
 		fmt.Printf("Error")
 	}
-	fmt.Printf("Output:\n %+v\n", Track)
+	//fmt.Printf("Output:\n %+v\n", Track)
 
+	for _, e := range Track {
+		switch e.Type {
+		case "PushEvent":
+			fmt.Printf("- Pushed %d commits to %s\n", len(e.Payload.Commits), e.Repo.Name)
+		case "WatchEvent":
+			fmt.Printf("- Starred %s\n", e.Repo.Name)
+		case "IssuesEvent":
+			fmt.Printf("- Opened a new issue in %s\n", e.Repo.Name)
+		case "ForkEvent":
+			fmt.Printf("- Forked %s\n", e.Repo.Name)
+		}
+
+	}
 }
